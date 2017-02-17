@@ -23,6 +23,7 @@ def plotseries(lat,lon):
         tims = ensemble_output.get_times(fid,1)
         for mem in range(1,ensemble_output.memcount + 1):
             vals = ensemble_output.get_timeseries(lat,lon,fid,mem)
+            axes[i].set_title(fid)
             axes[i].plot(tims,vals)
         i += 1
     plt.show()

@@ -26,6 +26,7 @@ def plotfield(fieldid,timeindex,boundingbox = None):
         mem += 1
         axis.set_title(fid + " member " + str(mem))
         m = Basemap(lon_0 = 0,resolution = 'h',ax = axis)
+#        m = Basemap(lon_0 = 0,resolution = 'h',ax = axis,llcrnrlon=-66.,llcrnrlat=44.,urcrnrlon=55., urcrnrlat=85.)
         data = ensemble_output.get_field(timeindex,fieldid,mem)
         im1 = m.pcolormesh(lons,lats,data,shading='flat',cmap=plt.cm.jet,latlon=True)
         cb = m.colorbar(im1,"bottom", size="5%", pad="2%")
