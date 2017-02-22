@@ -5,28 +5,29 @@ import numpy
 
 class ensoutput:
 
-    fieldids = ["ivt","mlsp","pr"]
-    ncvars = {"ivt":"ivt","mlsp":"var151","pr":"pr"}
+    fieldids = ["ivt","mlsp","pr","tas"]
+    ncvars = {"ivt":"ivt","mlsp":"var151","pr":"pr","tas":"var167"}
+    members = []
 
     def __init__(self,path):
         self.path = path
         memdirs = glob(os.path.join(path,"member_*"))
-        self.memcount = len(memdirs)
         self.ncpaths = {}
-        i = 0
         for memdir in memdirs:
-            i += 1
+            n = memdir.rindex('_')
+            m = int(memdir[n + 1:])
+            self.members.append(m)
             ppdir = os.path.abspath(os.path.join(memdir,"postproc"))
             for fid in self.fieldids:
                 ncpath = os.path.join(ppdir,fid + ".nc")
                 if(os.path.isfile(ncpath)):
-                    self.ncpaths[(i,fid)] = ncpath
+                    self.ncpaths[(m,fid)] = ncpath
                 else:
                     print "Warning: file " + ncpath + " does not exist"
 
     def validate_memindex(self,i):
-        if(i < 1 or i > self.memcount):
-            raise Exception("Ensemble member index out of range")
+        if(i not in self.members):
+            raise Exception("Ensemble member index " + str(i) + " out of range")
 
     def get_dataset(self,fieldid,member):
         self.validate_memindex(member)
@@ -41,7 +42,7 @@ class ensoutput:
         ds = self.get_dataset(fieldid,member)
         var = ds.variables.get(self.ncvars[fieldid],None)
         if(not var):
-            raise Exception("Netcdf file " + ncfile + " does not contain variable " + self.ncvars[fieldid])
+            raise Exception("Netcdf file does not contain variable " + self.ncvars[fieldid])
         return var
 
     def get_field(self,timestep,fieldid,member):
