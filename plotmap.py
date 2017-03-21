@@ -15,7 +15,7 @@ def initialize(path):
 def plotfield(fieldid,timeindex,boundingbox = None):
     if(not ensemble_output):
         raise Exception("Ensemble output path has not been specified")
-    if(ensemble_output.memcount < 1):
+    if(len(ensemble_output.members) < 1):
         print "No ensemble members found in " + ensemble_output.path
     lats = ensemble_output.get_lats(fieldid,1)
     lons = ensemble_output.get_lons(fieldid,1)
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
     parser.add_argument("--var",dest = "variable",help = "<Required> Variable (ivt|mlsp|pr|tas)",required = True)
     parser.add_argument("--tim",dest = "timeindex",help = "<Required> Time index",required = True)
-    parser.add_argument("--box",dest = "box",nargs = '+',type = float,help = "<Optional> bounding box: lonmin latmin lonmax latmax")
+    parser.add_argument("--box",dest = "box",nargs = '+',type = float,help = "<Optional> bounding box: latmin lonmin latmax lonmax")
     args = parser.parse_args()
     path = args.path
     fid = args.variable
