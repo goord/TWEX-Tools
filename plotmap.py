@@ -40,7 +40,8 @@ def plotfield(fieldid,timeindex,boundingbox = None):
             lonmax = boxdict.get("lonmax",180.)
             latmax = boxdict.get("latmax",90.)
             m = Basemap(resolution = 'h',ax = axis,llcrnrlon = lonmin,
-                        llcrnrlat = latmin,urcrnrlon = lonmax, urcrnrlat = latmax, projection = "merc")
+                        llcrnrlat = latmin,urcrnrlon = lonmax,urcrnrlat = latmax,
+                        projection = "merc")
         data = ensemble_output.get_field(timeindex,fieldid,mem)
 #        im1 = m.pcolormesh(lons,lats,data,shading = 'flat',cmap = plt.cm.jet,latlon = True)
         m.contour(lons,lats,data,linewidths = 0.5,colors = 'k',latlon = True)
