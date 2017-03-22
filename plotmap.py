@@ -62,10 +62,10 @@ if __name__ == "__main__":
     fid = args.variable
     time = args.timeindex
     box = getattr(args,"box",None)
-    boxdict = None if box == None else {}
-    if(len(box) > 0): boxdict["latmin"] = box[0]
-    if(len(box) > 1): boxdict["lonmin"] = box[1]
-    if(len(box) > 2): boxdict["latmax"] = box[2]
-    if(len(box) > 3): boxdict["lonmax"] = box[3]
+    boxargs = 0 if box == None else len(box)
+    if(boxargs > 0): boxdict["latmin"] = box[0]
+    if(boxargs > 1): boxdict["lonmin"] = box[1]
+    if(boxargs > 2): boxdict["latmax"] = box[2]
+    if(boxargs > 3): boxdict["lonmax"] = box[3]
     initialize(path)
     plotfield(fid,time,boxdict)
