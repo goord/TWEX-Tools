@@ -3,6 +3,34 @@ import os.path
 import netCDF4
 import numpy
 
+class ensemble_store:
+
+    def __init__(self,path):
+        self.path = path
+        self.memdirs = {}
+        self.variables = {}
+        for memdir in glob(os.path.join(path,"member_[0-9]")):
+            n = memdir.rindex('_')
+            m = int(memdir[n + 1:])
+            self.memdirs[m] = memdir
+
+    def get_dataset(self,varname,member):
+        ncfile = self.get_netcdf(varname,self.memdirs[member])
+        return netCDF4.Dataset(ncfile,'r')
+
+    def get_variable(self,varname,member):
+        dataset = self.get_dataset(varname,member)
+        ncvar = self.variables.get(varname,varname)
+        return dataset.variables[ncvar]
+
+    def get_field(self,timestep,varname,member):
+        var = get_variable(self,varname,member)
+        vardims = len(var.shape)
+        if(vardims == 3):
+            return var[timestep,:,:]
+        raise Exception("Variables of shape " + var.shape + "are not supported")
+
+
 class ensoutput:
 
     fieldids = ["ivt","mlsp","pr","tas"]
