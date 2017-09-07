@@ -69,3 +69,66 @@ class ensoutput:
         i = numpy.abs(self.get_lats(fieldid,member) - float(lat)).argmin()
         j = numpy.abs(self.get_lons(fieldid,member) - float(lon)).argmin()
         return var[:,i,j]
+
+
+class ecmwf_ensemble(ensoutput):
+
+    fieldids = ["tcw","tcwv","mlsp","tas","uas","vas","pr"]
+    ncvars = {"tcw":"var136","tcwv":"var137","mlsp":"var151","tas":"var167","uas":"var165","vas":"var166","pr":"var228"}
+
+    def __init__(self,path):
+        self.path = path
+        memdirs = glob(os.path.join(path,"member_*"))
+        self.ncpaths = {}
+        for memdir in memdirs:
+            n = memdir.rindex('_')
+            m = int(memdir[n + 1:])
+            ncpath = os.path.join(memdir,"ICMGGb0if.nc")
+            if(os.path.isfile(ncpath)):
+            	self.ncpaths[m] = ncpath
+            	self.members.append(m)
+            else:
+                print "Warning: file " + ncpath + " does not exist"
+
+    def validate_memindex(self,i):
+        if(i not in self.ncpaths):
+            raise Exception("Ensemble member index " + str(i) + " out of range")
+
+    def get_dataset(self,fieldid,member):
+        self.validate_memindex(member)
+        if(fieldid not in self.ncvars):
+            raise Exception("Field id " + fieldid + " is not supported")
+        ncfile = self.ncpaths[member]
+        return netCDF4.Dataset(ncfile,'r')
+
+    def get_variable(self,fieldid,member):
+        ds = self.get_dataset(fieldid,member)
+        var = ds.variables.get(self.ncvars[fieldid],None)
+        if(not var):
+            raise Exception("Netcdf file does not contain variable " + self.ncvars[fieldid])
+        return var
+
+    def get_field(self,timestep,fieldid,member):
+        var = self.get_variable(fieldid,member)
+        return var[timestep,:,:]
+
+    def get_lats(self,fieldid,member):
+        ds = self.get_dataset(fieldid,member)
+        lats = ds.variables.get("lat",None)
+        return lats[:]
+
+    def get_lons(self,fieldid,member):
+        ds = self.get_dataset(fieldid,member)
+        lons = ds.variables.get("lon",None)
+        return lons[:]
+
+    def get_times(self,fieldid,member):
+        ds = self.get_dataset(fieldid,member)
+        tims = ds.variables.get("time",None)
+        return tims[:]
+
+    def get_timeseries(self,lat,lon,fieldid,member):
+        var = self.get_variable(fieldid,member)
+        i = numpy.abs(self.get_lats(fieldid,member) - float(lat)).argmin()
+        j = numpy.abs(self.get_lons(fieldid,member) - float(lon)).argmin()
+        return var[:,i,j]
