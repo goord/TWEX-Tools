@@ -3,15 +3,9 @@
 import matplotlib.pyplot as plt
 import argparse
 import numpy
-from ensoutput import ensoutput
+import ensoutput
 
-ensemble_output = None
-
-def initialize(path):
-    global ensemble_output
-    ensemble_output = ensoutput(path)
-
-def plotseries(lat,lon):
+def plotseries(ensemble_output,lat,lon):
     if(not ensemble_output):
         raise Exception("Ensemble output path has not been specified")
     if(len(ensemble_output.members) < 1):
@@ -46,7 +40,12 @@ if __name__ == "__main__":
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
     parser.add_argument("--lat",dest = "lat",help = "<Required> Point latitude",required = True)
     parser.add_argument("--lon",dest = "lon",help = "<Required> Point longitude",required = True)
+    parser.add_argument("--mul",dest = "ncstore",action = "store_const",const = "multi",default = "single" )
     args = parser.parse_args()
     path,lat,lon = args.path,args.lat,args.lon
-    initialize(path)
-    plotseries(lat,lon)
+    ensemble = None
+    if(args.ncstore == "single"):
+        ensemble = ensoutput.singlenetcdf(path)
+    elif(args.ncstore == "multi"):
+        ensemble = ensoutput.multinetcdf(path)
+    plotseries(ensemble,lat,lon)
