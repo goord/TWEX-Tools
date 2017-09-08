@@ -3,7 +3,7 @@ import os.path
 import netCDF4
 import numpy
 
-class ensemble_store:
+class ensemble_store(object):
 
     def __init__(self,path):
         self.path = path
@@ -14,6 +14,12 @@ class ensemble_store:
             m = int(memdir[n + 1:])
             self.memdirs[m] = memdir
         self.variables = {}
+
+    def get_members(self):
+        return self.memdirs.keys()
+
+    def get_variables(self):
+        return self.variables.keys()
 
     def get_dataset(self,varname,member):
         ncfile = self.get_netcdf(varname,self.memdirs[member])
@@ -52,6 +58,19 @@ class ensemble_store:
         j = numpy.abs(self.get_lons(varname,member)[:] - float(lon)).argmin()
         return var[:,i,j]
 
+    def get_timeseries(self,latmin,latmax,lonmin,lonmax,varname,member):
+        lats = self.get_lats(varname,member)[:]
+        i1 = numpy.abs(lats - float(latmin)).argmin()
+        i2 = numpy.abs(lats - float(latmax)).argmin()
+        imin,imax = min(i1,i2),max(i1,i2)
+        lons = self.get_lons(varname,member)[:]
+        j1 = numpy.abs(lons - float(lonmin)).argmin()
+        j2 = numpy.abs(lons - float(lonmax)).argmin()
+        jmin,jmax = min(j1,j2),max(j1,j2)
+        var = self.get_variable(varname,member)
+        return numpy.mean(var[:,imin:imax,jmin:jmax],axes = [1,2])
+
+
 
 class multinetcdf(ensemble_store):
 
@@ -67,7 +86,7 @@ class multinetcdf(ensemble_store):
 class singlenetcdf(ensemble_store):
 
     def __init__(self,path):
-        super(multinetcdf,self).__init__(path)
+        super(singlenetcdf,self).__init__(path)
         self.variables = {"tcw":"var136","tcwv":"var137","mlsp":"var151","tas":"var167","uas":"var165","vas":"var166","pr":"var228"}
 
     def get_netcdf(self,varname,memdir):

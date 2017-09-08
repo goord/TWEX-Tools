@@ -8,17 +8,18 @@ import ensoutput
 def plotseries(ensemble_output,lat,lon):
     if(not ensemble_output):
         raise Exception("Ensemble output path has not been specified")
-    if(len(ensemble_output.members) < 1):
+    members = ensemble_output.get_members()
+    if(len(members) < 1):
         print "No ensemble members found in " + ensemble_output.path
-    fields = ensemble_output.fieldids
+    fields = ensemble_output.get_variables()
     fig,axes = plt.subplots(2,len(fields))
     for i in range(len(fields)):
         axes[0,i].ticklabel_format(style='sci', axis='y', scilimits=(-2,2))
         axes[1,i].ticklabel_format(style='sci', axis='y', scilimits=(-2,2))
         fid = fields[i]
         tims = ensemble_output.get_times(fid,1)
-        valsarr = numpy.zeros([len(ensemble_output.members),len(tims)])
-        for mem in ensemble_output.members:
+        valsarr = numpy.zeros([len(members),len(tims)])
+        for mem in members:
             vals = ensemble_output.get_timeseries(lat,lon,fid,mem)
             axes[0,i].set_title(fid)
             if(mem == 0):
