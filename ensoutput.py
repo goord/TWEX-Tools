@@ -31,10 +31,12 @@ class ensemble_store(object):
     def get_variable(self,varname,member):
         dataset = self.get_dataset(varname,member)
         ncvar = self.variables.get(varname,varname)
-        return dataset.variables[ncvar]
+        return dataset.variables.get(ncvar,None)
 
     def get_field(self,timestep,varname,member):
         var = get_variable(self,varname,member)
+        if(not var):
+            return None
         vardims = len(var.shape)
         if(vardims == 3):
             return var[timestep,:,:]
@@ -52,24 +54,28 @@ class ensemble_store(object):
         ds = self.get_dataset(varname,member)
         return ds.variables[self.timvar]
 
-    def get_timeseries(self,lat,lon,varname,member):
+    def get_timeseries(self,box,varname,member):
         var = self.get_variable(varname,member)
-        i = numpy.abs(self.get_lats(varname,member)[:] - float(lat)).argmin()
-        j = numpy.abs(self.get_lons(varname,member)[:] - float(lon)).argmin()
-        return var[:,i,j]
-
-    def get_timeseries(self,latmin,latmax,lonmin,lonmax,varname,member):
+        if(not var):
+            return None
         lats = self.get_lats(varname,member)[:]
-        i1 = numpy.abs(lats - float(latmin)).argmin()
-        i2 = numpy.abs(lats - float(latmax)).argmin()
-        imin,imax = min(i1,i2),max(i1,i2)
         lons = self.get_lons(varname,member)[:]
-        j1 = numpy.abs(lons - float(lonmin)).argmin()
-        j2 = numpy.abs(lons - float(lonmax)).argmin()
-        jmin,jmax = min(j1,j2),max(j1,j2)
-        var = self.get_variable(varname,member)
-        return numpy.mean(var[:,imin:imax,jmin:jmax],axes = [1,2])
-
+        if(len(box) == 2):
+            lat,lon = box[0],box[1]
+            i = numpy.abs(lats - float(lat)).argmin()
+            j = numpy.abs(lats - float(lon)).argmin()
+            return var[:,i,j]
+        if(len(box) == 4):
+            latmin,latmax,lonmin,lonmax = box[0],box[1],box[2],box[3]
+            i1 = numpy.abs(lats - float(latmin)).argmin()
+            i2 = numpy.abs(lats - float(latmax)).argmin()
+            imin,imax = min(i1,i2),max(i1,i2)
+            j1 = numpy.abs(lons - float(lonmin)).argmin()
+            j2 = numpy.abs(lons - float(lonmax)).argmin()
+            jmin,jmax = min(j1,j2),max(j1,j2)
+            var = self.get_variable(varname,member)
+            return numpy.mean(var[:,imin:imax,jmin:jmax],axes = [1,2])
+        return None
 
 
 class multinetcdf(ensemble_store):

@@ -11,22 +11,29 @@ def plotseries(ensemble_output,lat,lon):
     members = ensemble_output.get_members()
     if(len(members) < 1):
         print "No ensemble members found in " + ensemble_output.path
-    fields = ensemble_output.get_variables()
-    fig,axes = plt.subplots(2,len(fields))
-    for i in range(len(fields)):
+    variables = ensemble_output.get_variables()
+    fig,axes = plt.subplots(2,len(variables))
+    for i in range(len(variables)):
         axes[0,i].ticklabel_format(style='sci', axis='y', scilimits=(-2,2))
         axes[1,i].ticklabel_format(style='sci', axis='y', scilimits=(-2,2))
-        fid = fields[i]
-        tims = ensemble_output.get_times(fid,1)
+        tims = ensemble_output.get_times(variables[i],1)
         valsarr = numpy.zeros([len(members),len(tims)])
+        varnotfound = False
         for mem in members:
-            vals = ensemble_output.get_timeseries(lat,lon,fid,mem)
-            axes[0,i].set_title(fid)
+            vals = ensemble_output.get_timeseries(lat,lon,variables[i],mem)
+            if(not vals):
+                print "Variable",variables[i],"not found in member",mem
+                varnotfound = True
+                continue
+            else:
+                varnotfound = False
+            axes[0,i].set_title(variables[i])
             if(mem == 0):
                 axes[0,i].plot(tims,vals,"--k",linewidth=2)
             else:
                 axes[0,i].plot(tims,vals)
             valsarr[mem,:] = vals[:]
+        if varnotfound: continue
         mean = numpy.mean(valsarr[1:,:],0)
         std = numpy.std(valsarr,0)
         rmse = numpy.sqrt(numpy.mean((valsarr[1:,:]-valsarr[0,:])**2,0))
