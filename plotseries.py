@@ -19,9 +19,10 @@ def plotseries(ensemble_output,box):
         tims = ensemble_output.get_times(variables[i],1)
         valsarr = numpy.zeros([len(members),len(tims)])
         varnotfound = False
+        j = 0
         for mem in members:
             vals = ensemble_output.get_timeseries(box,variables[i],mem)
-            if(not vals):
+            if(vals == None):
                 print "Variable",variables[i],"not found in member",mem
                 varnotfound = True
                 continue
@@ -32,7 +33,8 @@ def plotseries(ensemble_output,box):
                 axes[0,i].plot(tims,vals,"--k",linewidth=2)
             else:
                 axes[0,i].plot(tims,vals)
-            valsarr[mem,:] = vals[:]
+            valsarr[j,:] = vals[:]
+            j += 1
         if varnotfound: continue
         mean = numpy.mean(valsarr[1:,:],0)
         std = numpy.std(valsarr,0)
@@ -63,4 +65,4 @@ if __name__ == "__main__":
         ensemble = ensoutput.singlenetcdf(path)
     elif(args.ncstore == "multi"):
         ensemble = ensoutput.multinetcdf(path)
-    plotseries(ensemble,lat,lon)
+    plotseries(ensemble,box)

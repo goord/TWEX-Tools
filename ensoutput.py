@@ -74,7 +74,7 @@ class ensemble_store(object):
             j2 = numpy.abs(lons - float(lonmax)).argmin()
             jmin,jmax = min(j1,j2),max(j1,j2)
             var = self.get_variable(varname,member)
-            return numpy.mean(var[:,imin:imax,jmin:jmax],axes = [1,2])
+            return numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2))
         return None
 
 
