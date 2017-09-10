@@ -5,7 +5,7 @@ import argparse
 import numpy
 import ensoutput
 
-def plotseries(ensemble_output,lat,lon):
+def plotseries(ensemble_output,box):
     if(not ensemble_output):
         raise Exception("Ensemble output path has not been specified")
     members = ensemble_output.get_members()
@@ -20,7 +20,7 @@ def plotseries(ensemble_output,lat,lon):
         valsarr = numpy.zeros([len(members),len(tims)])
         varnotfound = False
         for mem in members:
-            vals = ensemble_output.get_timeseries(lat,lon,variables[i],mem)
+            vals = ensemble_output.get_timeseries(box,variables[i],mem)
             if(not vals):
                 print "Variable",variables[i],"not found in member",mem
                 varnotfound = True
@@ -46,11 +46,18 @@ def plotseries(ensemble_output,lat,lon):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Draw ensemble time series")
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
-    parser.add_argument("--lat",dest = "lat",help = "<Required> Point latitude",required = True)
-    parser.add_argument("--lon",dest = "lon",help = "<Required> Point longitude",required = True)
+    parser.add_argument("--lat",dest = "lat",nargs = "+",help = "<Required> Latitude range (or value)",required = True)
+    parser.add_argument("--lon",dest = "lon",nargs = "+",help = "<Required> Longitude range (or value)",required = True)
     parser.add_argument("--mul",dest = "ncstore",action = "store_const",const = "multi",default = "single" )
     args = parser.parse_args()
     path,lat,lon = args.path,args.lat,args.lon
+    box = None
+    if(len(lat) == 1 and len(lon) == 1):
+        box = [lat[0],lon[0]]
+    elif(len(lat) == 2 and len(lon) == 2):
+        box = [lat[0],lat[1],lon[0],lon[1]]
+    else:
+        raise Exception("Unsupported combination of latitudes " + str(lat) + " and longitudes " + str(lon))
     ensemble = None
     if(args.ncstore == "single"):
         ensemble = ensoutput.singlenetcdf(path)
