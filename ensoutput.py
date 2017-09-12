@@ -52,7 +52,8 @@ class ensemble_store(object):
 
     def get_times(self,varname,member):
         ds = self.get_dataset(varname,member)
-        return ds.variables[self.timvar]
+        variable = ds.variables[self.timvar]
+        return netCDF4.num2date(variable[:],units = getattr(variable,"units",None),calendar = "gregorian")
 
     def get_timeseries(self,box,varname,member):
         var = self.get_variable(varname,member)
