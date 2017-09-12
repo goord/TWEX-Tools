@@ -49,19 +49,24 @@ def plotseries(ensemble_output,box,pltvars):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Draw ensemble time series")
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
-    parser.add_argument("--lat",dest = "lat",nargs = "+",help = "<Required> Latitude range (or value)",required = True)
-    parser.add_argument("--lon",dest = "lon",nargs = "+",help = "<Required> Longitude range (or value)",required = True)
+    parser.add_argument("--loc",dest = "loc",nargs = "+",help = "<Required> Data location: either WestCoast, Svalbard a lat-lon pair or a lat-lon box (latmin latmax lonmin lonmax)")
     parser.add_argument("--mul",dest = "ncstore",action = "store_const",const = "multi",default = "single" )
     parser.add_argument("--vars",dest = "vars",nargs = "+",help = "Plot variable list",required = True)
     args = parser.parse_args()
-    path,lat,lon = args.path,args.lat,args.lon
+    path,loc = args.path,args.loc
     box = None
-    if(len(lat) == 1 and len(lon) == 1):
-        box = [lat[0],lon[0]]
-    elif(len(lat) == 2 and len(lon) == 2):
-        box = [lat[0],lat[1],lon[0],lon[1]]
+    if(len(loc) == 1):
+        locstring = str(loc[0]).lower()
+        if(locstring == "westcoast"):
+            box = [59.616826,61.474623,4.836320,7.560929]
+        elif(locstring == "svalbard"):
+            box = [77.778678,79.228149,13.909666,18.686065]
+    elif(len(loc) == 2):
+        box = [float(loc[0]),float(loc[1])]
+    elif(len(loc) == 4):
+        box = [float(loc[0]),float(loc[1]),float(loc[2]),float(loc[3])]
     else:
-        raise Exception("Unsupported combination of latitudes " + str(lat) + " and longitudes " + str(lon))
+        raise Exception("Unsupported location specification " + str(loc))
     ensemble = None
     if(args.ncstore == "single"):
         ensemble = ensoutput.singlenetcdf(path)
