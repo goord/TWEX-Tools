@@ -34,11 +34,13 @@ class ensemble_store(object):
         return dataset.variables.get(ncvar,None)
 
     def get_field(self,timestep,varname,member):
-        var = get_variable(self,varname,member)
+        var = self.get_variable(varname,member)
         if(not var):
             return None
         vardims = len(var.shape)
         if(vardims == 3):
+            if(varname == "prcum"):
+                return numpy.sum(var[0:timestep+1,:,:],axis = 0)
             return var[timestep,:,:]
         raise Exception("Variables of shape " + var.shape + "are not supported")
 
@@ -65,6 +67,8 @@ class ensemble_store(object):
             lat,lon = box[0],box[1]
             i = numpy.abs(lats - float(lat)).argmin()
             j = numpy.abs(lats - float(lon)).argmin()
+            if(varname == "prcum"):
+                return numpy.cumsum(var[:,i,j],axis = 0)
             return var[:,i,j]
         if(len(box) == 4):
             latmin,latmax,lonmin,lonmax = box[0],box[1],box[2],box[3]
@@ -75,6 +79,8 @@ class ensemble_store(object):
             j2 = numpy.abs(lons - float(lonmax)).argmin()
             jmin,jmax = min(j1,j2),max(j1,j2)
             var = self.get_variable(varname,member)
+            if(varname == "prcum"):
+                return numpy.cumsum(numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2)),axis = 0)
             return numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2))
         return None
 
@@ -83,7 +89,7 @@ class multinetcdf(ensemble_store):
 
     def __init__(self,path):
         super(multinetcdf,self).__init__(path)
-        self.variables = {"ivt":"ivt","mlsp":"var151","pr":"pr","tas":"var167"}
+        self.variables = {"ivt":"ivt","mlsp":"var151","pr":"pr","tas":"var167","prcum":"pr"}
 
     def get_netcdf(self,varname,memdir):
         ppdir = os.path.abspath(os.path.join(memdir,"postproc"))
@@ -94,7 +100,8 @@ class singlenetcdf(ensemble_store):
 
     def __init__(self,path):
         super(singlenetcdf,self).__init__(path)
-        self.variables = {"tcw":"var136","tcwv":"var137","mlsp":"var151","tas":"var167","uas":"var165","vas":"var166","pr":"var228"}
+        self.variables =
+        {"tcw":"TCW","tcwv":"TCWV","mlsp":"MLS","tas":"T2M","uas":"U10M","vas":"V10M","pr":"TP","prcum":"TP"}
 
     def get_netcdf(self,varname,memdir):
         return os.path.join(memdir,"ICMGGb0if.nc")

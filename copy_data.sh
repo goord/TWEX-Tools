@@ -57,8 +57,8 @@ for mem in `seq $STARTMEM $STOPMEM` ; do
     $UNZIP $FNAME
     GRIBFILE=$(echo "$FNAME" | cut -d'.' -f1)
     TMPFILE=$(mktemp $TGTDIR/ECE.XXXXXXXX)
-    $GRIB_CP -w,paramId=78/79/136/137/142/143/151/164/165/166/167 $GRIBFILE $TMPFILE
-    $CDO -f nc -z zip -setgridtype,regular -aexpr,'var228=var142+var143' $TMPFILE $TGTDIR/ICMGG${EXP}.nc
+    $GRIB_CP -w,paramId=78/79/136/137/142/143/151/164/165/166/167/186/187/188 $GRIBFILE $TMPFILE
+    $CDO -f nc -z zip -t ecmwf -setgridtype,regular -aexpr,'var228=var142+var143' $TMPFILE $TGTDIR/ICMGG${EXP}.nc
     rm -f $GRIBFILE
     rm -f $TMPFILE
   done
