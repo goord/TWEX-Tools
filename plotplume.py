@@ -6,6 +6,7 @@ import argparse
 import numpy
 import ensoutput
 import datetime
+import utils
 
 plotstyles = {"mlsp":{"color":"red","units":"hPa","longname":"mean sea-level pressure"},
               "tas":{"color":"orange","units":"K","longname":"2m temperature"},
@@ -64,19 +65,7 @@ if __name__ == "__main__":
     parser.add_argument("--var",dest = "var",help = "Plot variable",required = True)
     args = parser.parse_args()
     path,loc = args.path,args.loc
-    box = None
-    if(len(loc) == 1):
-        locstring = str(loc[0]).lower()
-        if(locstring == "westcoast"):
-            box = [59.616826,61.474623,4.836320,7.560929]
-        elif(locstring == "svalbard"):
-            box = [77.778678,79.228149,13.909666,18.686065]
-    elif(len(loc) == 2):
-        box = [float(loc[0]),float(loc[1])]
-    elif(len(loc) == 4):
-        box = [float(loc[0]),float(loc[1]),float(loc[2]),float(loc[3])]
-    else:
-        raise Exception("Unsupported location specification " + str(loc))
+    box = utils.getbox(loc)
     ensemble = None
     if(args.ncstore == "single"):
         ensemble = ensoutput.singlenetcdf(path)
