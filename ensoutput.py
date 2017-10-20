@@ -5,14 +5,23 @@ import numpy
 
 class ensemble_store(object):
 
-    def __init__(self,path):
+    variables = {"tcw":"TCW","tcwv":"TCWV","mlsp":"MLS","tas":"T2M","uas":"U10M","vas":"V10M","pr":"TP","prcum":"TP"}
+    codes = {"tcw":136,"tcwv":137,"mlsp":151,"tas":167,"uas":165,"vas":166,"pr":228,"prcum":228}
+
+    @staticmethod
+    def get_vars(delimiter = ','):
+        return delimiter.join(variables.keys())
+
+    def __init__(self,path,exp):
         self.path = path
+        self.exp = exp
         self.memdirs = {}
         self.latvar,self.lonvar,self.timvar = "lat","lon","time"
         for memdir in glob(os.path.join(path,"member_[0-9]")):
             n = memdir.rindex('_')
             m = int(memdir[n + 1:])
-            self.memdirs[m] = memdir
+            if(os.path.isfile(os.path.join(memdir,"ICMGG" + exp + ".nc"))):
+                self.memdirs[m] = memdir
         self.variables = {}
 
     def get_members(self):
@@ -22,16 +31,17 @@ class ensemble_store(object):
         return self.variables.keys()
 
     def get_dataset(self,varname,member):
-        ncfile = self.get_netcdf(varname,self.memdirs[member])
-        return netCDF4.Dataset(ncfile,'r')
-
-    def get_netcdf(self,varname,memdir):
-        raise Exception("Finding the netcdf file for variable" + varname + "is not implemented in this base class")
+        path = os.path.join(self.memdirs[member],"ICMGG" + self.exp + ".nc")
+        return netCDF4.Dataset(path,"r")
 
     def get_variable(self,varname,member):
         dataset = self.get_dataset(varname,member)
-        ncvar = self.variables.get(varname,varname)
-        return dataset.variables.get(ncvar,None)
+        result = None
+        if(varname in ensemble_store.variables):
+            result = dataset.variables.get(ensemble_store.variables[varname],None)
+            if(not result):
+                result = dataset.variables.get("var" + str(ensemble_store.codes[varname]),None)
+        return result
 
     def get_field(self,timestep,varname,member):
         var = self.get_variable(varname,member)
@@ -40,7 +50,7 @@ class ensemble_store(object):
         vardims = len(var.shape)
         if(vardims == 3):
             if(varname == "prcum"):
-                return numpy.sum(var[0:timestep+1,:,:],axis = 0)
+                return numpy.sum(var[0:timestep + 1,:,:],axis = 0)
             return var[timestep,:,:]
         raise Exception("Variables of shape " + var.shape + "are not supported")
 
@@ -83,25 +93,3 @@ class ensemble_store(object):
                 return numpy.cumsum(numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2)),axis = 0)
             return numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2))
         return None
-
-
-class multinetcdf(ensemble_store):
-
-    def __init__(self,path):
-        super(multinetcdf,self).__init__(path)
-        self.variables = {"ivt":"ivt","mlsp":"var151","pr":"pr","tas":"var167","prcum":"pr"}
-
-    def get_netcdf(self,varname,memdir):
-        ppdir = os.path.abspath(os.path.join(memdir,"postproc"))
-        os.path.join(ppdir,varname + ".nc")
-
-
-class singlenetcdf(ensemble_store):
-
-    def __init__(self,path):
-        super(singlenetcdf,self).__init__(path)
-        self.variables =
-        {"tcw":"TCW","tcwv":"TCWV","mlsp":"MLS","tas":"T2M","uas":"U10M","vas":"V10M","pr":"TP","prcum":"TP"}
-
-    def get_netcdf(self,varname,memdir):
-        return os.path.join(memdir,"ICMGGb0if.nc")

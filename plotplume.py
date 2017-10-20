@@ -41,8 +41,6 @@ def plotplume(ensemble_output,box,pltvar):
             plt.plot(tims,vals,linewidth = 1,linestyle = "-",color = color)
         valsarr[j,:] = vals[:]
         j += 1
-    #maxline = numpy.amax(valsarr,axis = 0)
-    #minline = numpy.amin(valsarr,axis = 0)
     mean = numpy.mean(valsarr[1:,:],0)
     std = numpy.std(valsarr,0)
     plt.plot(tims,mean,"k",linewidth=1)
@@ -60,15 +58,12 @@ def plotplume(ensemble_output,box,pltvar):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Draw ensemble time series")
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
-    parser.add_argument("--loc",dest = "loc",nargs = "+",help = "<Required> Data location: either WestCoast, Svalbard a lat-lon pair or a lat-lon box (latmin latmax lonmin lonmax)")
-    parser.add_argument("--mul",dest = "ncstore",action = "store_const",const = "multi",default = "single" )
-    parser.add_argument("--var",dest = "var",help = "Plot variable",required = True)
+    parser.add_argument("--loc", dest = "loc",nargs = "+",help = "<Required> Data location: either WestCoast, Svalbard a lat-lon pair"
+                                                                 "or a lat-lon box (latmin latmax lonmin lonmax)")
+    parser.add_argument("--var", dest = "var",help = "<Required> Variable (%s)" % ensoutput.ensemble_store.get_vars('|'),required = True)
+    parser.add_argument("--exp", dest = "exp",help = "<Optional> Experiment name",default = "b0if" )
     args = parser.parse_args()
-    path,loc = args.path,args.loc
+    path,exp,loc = args.path,args.exp,args.loc
+    ensemble = ensoutput.ensemble_store(path,exp)
     box = utils.getbox(loc)
-    ensemble = None
-    if(args.ncstore == "single"):
-        ensemble = ensoutput.singlenetcdf(path)
-    elif(args.ncstore == "multi"):
-        ensemble = ensoutput.multinetcdf(path)
     plotplume(ensemble,box,args.var)

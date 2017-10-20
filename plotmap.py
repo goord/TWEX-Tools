@@ -41,7 +41,6 @@ def plotfield(fieldid,timeindex,boundingbox = None):
                         llcrnrlat = latmin,urcrnrlon = lonmax,urcrnrlat = latmax,
                         projection = "merc")
         data = ensemble_output.get_field(timeindex,fieldid,i)
-#        im1 = m.pcolormesh(lons,lats,data,shading = 'flat',cmap = plt.cm.jet,latlon = True)
         m.contour(lons,lats,data,linewidths = 0.5,colors = 'k',latlon = True)
         im1 = m.contourf(lons,lats,data,cmap = plt.cm.jet,latlon = True)
         m.drawcoastlines()
@@ -53,13 +52,13 @@ def plotfield(fieldid,timeindex,boundingbox = None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Draw ensemble maps")
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
-    parser.add_argument("--var",dest = "variable",help = "<Required> Variable (ivt|mlsp|pr|tas)",required = True)
-    parser.add_argument("--tim",dest = "timeindex",help = "<Required> Time index",required = True)
+    parser.add_argument("--var",dest = "variable",help = "<Required> Variable (%s)" % ensoutput.ensemble_store.get_vars('|'),required = True)
+    parser.add_argument("--tim",dest = "timestep",help = "<Required> Time step",default = 0)
     parser.add_argument("--box",dest = "box",nargs = '+',type = float,help = "<Optional> bounding box: latmin lonmin latmax lonmax")
     args = parser.parse_args()
     path = args.path
     fid = args.variable
-    time = args.timeindex
+    time = args.timestep
     box = getattr(args,"box",None)
     boxargs = 0 if box == None else len(box)
     boxdict = {}
