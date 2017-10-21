@@ -12,53 +12,51 @@ def initialize(path):
     global ensemble_output
     ensemble_output = ensoutput.singlenetcdf(path)
 
-def plotfield(fieldid,timeindex,boundingbox = None):
+def plotfield(fieldid,timeindex,boundingbox = None,member = 0):
     if(not ensemble_output):
         raise Exception("Ensemble output path has not been specified")
-    if(len(ensemble_output.get_members()) < 1):
-        print "No ensemble members found in " + ensemble_output.path
+    if(member not in ensemble_output.get_members()):
+        print "Member " + str(member) +" not found in " + str(ensemble_output.get_members())
+        return
     lats = ensemble_output.get_lats(fieldid,1)
     lons = ensemble_output.get_lons(fieldid,1)
     lons,lats = numpy.meshgrid(lons,lats)
-    fig,axes = plt.subplots(3,(len(ensemble_output.get_members())+2)/3)
-    i = 0
-    for axis in axes.flat:
-        if(i == len(ensemble_output.get_members())): break
-        axis.set_title(fid + " member " + str(i))
-        if(not boundingbox):
-            m = Basemap(lon_0 = 0,resolution = 'h',ax = axis)
+    plt.title(fid + " member " + str(member))
+    if(not boundingbox):
+        m = Basemap(lon_0 = 0,resolution = 'h',ax = axis)
+    else:
+        boxdict = None
+        if(isinstance(boundingbox,dict)):
+            boxdict = boundingbox
         else:
-            boxdict = None
-            if(isinstance(boundingbox,dict)):
-                boxdict = boundingbox
-            else:
-                boxdict = boundingbox.__dict__
-            lonmin = boxdict.get("lonmin",-180.)
-            latmin = boxdict.get("latmin",-90.)
-            lonmax = boxdict.get("lonmax",180.)
-            latmax = boxdict.get("latmax",90.)
-            m = Basemap(resolution = 'h',ax = axis,llcrnrlon = lonmin,
-                        llcrnrlat = latmin,urcrnrlon = lonmax,urcrnrlat = latmax,
-                        projection = "merc")
-        data = ensemble_output.get_field(timeindex,fieldid,i)
-        m.contour(lons,lats,data,linewidths = 0.5,colors = 'k',latlon = True)
-        im1 = m.contourf(lons,lats,data,cmap = plt.cm.jet,latlon = True)
-        m.drawcoastlines()
-        cb = m.colorbar(im1)
-        i += 1
+            boxdict = boundingbox.__dict__
+        lonmin = boxdict.get("lonmin",-79.)
+        latmin = boxdict.get("latmin",36.)
+        lonmax = boxdict.get("lonmax",36.)
+        latmax = boxdict.get("latmax",81.)
+        m = Basemap(resolution = 'h',llcrnrlon = lonmin,
+                    llcrnrlat = latmin,urcrnrlon = lonmax,urcrnrlat = latmax,
+                    projection = "merc")
+    data = ensemble_output.get_field(timeindex,fieldid,member)
+    m.contour(lons,lats,data,linewidths = 0.5,colors = 'k',latlon = True)
+    im1 = m.contourf(lons,lats,data,20,cmap = plt.cm.jet,latlon = True,)
+    m.drawcoastlines()
+    cb = m.colorbar(im1)
     plt.show()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Draw ensemble maps")
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
-    parser.add_argument("--var",dest = "variable",help = "<Required> Variable (%s)" % ensoutput.ensemble_store.get_vars('|'),required = True)
-    parser.add_argument("--tim",dest = "timestep",help = "<Required> Time step",default = 0)
+    parser.add_argument("--var",dest = "variable",help = "<Required> Variable (ivt|mlsp|pr|tas)",required = True)
+    parser.add_argument("--mem",dest = "member",help = "<Required> Member (0-9)",required = True)
+    parser.add_argument("--tim",dest = "timeindex",help = "<Required> Time index",required = True)
     parser.add_argument("--box",dest = "box",nargs = '+',type = float,help = "<Optional> bounding box: latmin lonmin latmax lonmax")
     args = parser.parse_args()
     path = args.path
     fid = args.variable
-    time = args.timestep
+    time = args.timeindex
+    mem = int(args.member)
     box = getattr(args,"box",None)
     boxargs = 0 if box == None else len(box)
     boxdict = {}
@@ -67,4 +65,4 @@ if __name__ == "__main__":
     if(boxargs > 2): boxdict["latmax"] = box[2]
     if(boxargs > 3): boxdict["lonmax"] = box[3]
     initialize(path)
-    plotfield(fid,time,boxdict)
+    plotfield(fid,time,boxdict,mem)

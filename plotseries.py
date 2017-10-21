@@ -64,27 +64,11 @@ def plotseries(ensemble_output,box,pltvars):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Draw ensemble time series")
     parser.add_argument("--path",dest = "path",help = "<Required> Data location",required = True)
-    parser.add_argument("--loc",dest = "loc",nargs = "+",help = "<Required> Data location: either WestCoast, Svalbard a lat-lon pair or a lat-lon box (latmin latmax lonmin lonmax)")
-    parser.add_argument("--mul",dest = "ncstore",action = "store_const",const = "multi",default = "single" )
-    parser.add_argument("--vars",dest = "vars",nargs = "+",help = "Plot variable list",required = True)
-    args = parser.parse_args()
-    path,loc = args.path,args.loc
-    box = None
-    if(len(loc) == 1):
-        locstring = str(loc[0]).lower()
-        if(locstring == "westcoast"):
-            box = [59.616826,61.474623,4.836320,7.560929]
-        elif(locstring == "svalbard"):
-            box = [77.778678,79.228149,13.909666,18.686065]
-    elif(len(loc) == 2):
-        box = [float(loc[0]),float(loc[1])]
-    elif(len(loc) == 4):
-        box = [float(loc[0]),float(loc[1]),float(loc[2]),float(loc[3])]
-    else:
-        raise Exception("Unsupported location specification " + str(loc))
-    ensemble = None
-    if(args.ncstore == "single"):
-        ensemble = ensoutput.singlenetcdf(path)
-    elif(args.ncstore == "multi"):
-        ensemble = ensoutput.multinetcdf(path)
+    parser.add_argument("--loc", dest = "loc",nargs = "+",help = "<Required> Data location: either WestCoast, Svalbard a lat-lon pair"
+                                                                 "or a lat-lon box (latmin latmax lonmin lonmax)")
+    parser.add_argument("--vars",dest = "vars",nargs = "+",help = "<Required> Variable list, choose from (%s)" % ensoutput.ensemble_store.get_vars('|'),required = True)
+    parser.add_argument("--exp", dest = "exp",help = "<Optional> Experiment name",default = "b0if" )
+    path,exp,loc = args.path,args.exp,args.loc
+    ensemble = ensoutput.ensemble_store(path,exp)
+    box = utils.getbox(loc)
     plotseries(ensemble,box,args.vars)
