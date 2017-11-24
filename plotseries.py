@@ -6,6 +6,8 @@ import argparse
 import numpy
 import ensoutput
 import datetime
+import utils
+import ensoutput
 
 def plotseries(ensemble_output,box,pltvars):
     if(not ensemble_output):
@@ -25,7 +27,7 @@ def plotseries(ensemble_output,box,pltvars):
         j = 0
         for mem in members:
             vals = ensemble_output.get_timeseries(box,variables[i],mem)
-            if(vals == None):
+            if(not any(vals)):
                 print "Variable",variables[i],"not found in member",mem
                 varnotfound = True
                 continue
@@ -68,6 +70,7 @@ if __name__ == "__main__":
                                                                  "or a lat-lon box (latmin latmax lonmin lonmax)")
     parser.add_argument("--vars",dest = "vars",nargs = "+",help = "<Required> Variable list, choose from (%s)" % ensoutput.ensemble_store.get_vars('|'),required = True)
     parser.add_argument("--exp", dest = "exp",help = "<Optional> Experiment name",default = "b0if" )
+    args = parser.parse_args()
     path,exp,loc = args.path,args.exp,args.loc
     ensemble = ensoutput.ensemble_store(path,exp)
     box = utils.getbox(loc)

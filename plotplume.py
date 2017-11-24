@@ -21,7 +21,7 @@ def plotplume(ensemble_output,box,pltvar):
         print "No ensemble members found in " + ensemble_output.path
         return
     if(pltvar not in ensemble_output.get_variables()):
-        print "Variable " + pltvar + " not found in " + ensemble_output.get_variables()
+        print "Variable " + pltvar + " not found in " + ensemble_output.get_vars()
         return
     color = plotstyles.get(pltvar,{}).get("color","red")
     units = plotstyles.get(pltvar,{}).get("units","")
@@ -32,7 +32,7 @@ def plotplume(ensemble_output,box,pltvar):
     j = 0
     for mem in members:
         vals = ensemble_output.get_timeseries(box,pltvar,mem)
-        if(vals == None):
+        if(not any(vals)):
             print "Variable",variables[i],"not found in member",mem
             return
         if(mem == 0):

@@ -5,12 +5,12 @@ import numpy
 
 class ensemble_store(object):
 
-    variables = {"tcw":"TCW","tcwv":"TCWV","mlsp":"MLS","tas":"T2M","uas":"U10M","vas":"V10M","pr":"TP","prcum":"TP"}
+    variables = {"tcw":"TCW","tcwv":"TCWV","mlsp":"MSL","tas":"T2M","uas":"U10M","vas":"V10M","pr":"TP","prcum":"TP"}
     codes = {"tcw":136,"tcwv":137,"mlsp":151,"tas":167,"uas":165,"vas":166,"pr":228,"prcum":228}
 
     @staticmethod
     def get_vars(delimiter = ','):
-        return delimiter.join(variables.keys())
+        return delimiter.join(ensemble_store.variables.keys())
 
     def __init__(self,path,exp):
         self.path = path
@@ -22,13 +22,12 @@ class ensemble_store(object):
             m = int(memdir[n + 1:])
             if(os.path.isfile(os.path.join(memdir,"ICMGG" + exp + ".nc"))):
                 self.memdirs[m] = memdir
-        self.variables = {}
 
     def get_members(self):
         return self.memdirs.keys()
 
     def get_variables(self):
-        return self.variables.keys()
+        return ensemble_store.variables.keys()
 
     def get_dataset(self,varname,member):
         path = os.path.join(self.memdirs[member],"ICMGG" + self.exp + ".nc")
@@ -70,7 +69,7 @@ class ensemble_store(object):
     def get_timeseries(self,box,varname,member):
         var = self.get_variable(varname,member)
         if(not var):
-            return None
+            return []
         lats = self.get_lats(varname,member)[:]
         lons = self.get_lons(varname,member)[:]
         if(len(box) == 2):
@@ -92,4 +91,4 @@ class ensemble_store(object):
             if(varname == "prcum"):
                 return numpy.cumsum(numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2)),axis = 0)
             return numpy.mean(var[:,imin:imax,jmin:jmax],axis = (1,2))
-        return None
+        return []

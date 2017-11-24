@@ -52,15 +52,17 @@ for mem in `seq $STARTMEM $STOPMEM` ; do
   mkdir -p $TGTDIR
   echo "Copying gridpoint files to $TGTDIR..."
   $CP $SRC/member_$mem/ICMGG${EXP}+[0-9][0-9][0-9][0-9][0-9][0-9].gz $TGTDIR
-  echo "Decompressing gridpoint files in $TGTDIR"
+  echo "Processing gridpoint files in $TGTDIR"
   for FNAME in $TGTDIR/ICMGG${EXP}+[0-9][0-9][0-9][0-9][0-9][0-9].gz ; do
     $UNZIP $FNAME
     GRIBFILE=$(echo "$FNAME" | cut -d'.' -f1)
     TMPFILE=$(mktemp $TGTDIR/ECE.XXXXXXXX)
     $GRIB_CP -w,paramId=78/79/136/137/142/143/151/164/165/166/167/186/187/188 $GRIBFILE $TMPFILE
-    $CDO -f nc -z zip -t ecmwf -setgridtype,regular -aexpr,'var228=var142+var143' $TMPFILE $TGTDIR/ICMGG${EXP}.nc
+    $CDO -setgridtype,regular -aexpr,var228=var142+var143 $TMPFILE $TGTDIR/ICMGG${EXP}.grib
+    $CDO -f nc4 -z zip -t ecmwf -copy $TGTDIR/ICMGG${EXP}.grib $TGTDIR/ICMGG${EXP}.nc
     rm -f $GRIBFILE
     rm -f $TMPFILE
+    rm -f $TGTDIR/ICMGG${EXP}.grib
   done
 
 done
